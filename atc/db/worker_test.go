@@ -388,4 +388,66 @@ var _ = Describe("Worker", func() {
 			})
 		})
 	})
+
+	FDescribe("ActiveBuildContainers", func() {
+		var checkContainerOwner, buildStepContainerOwner ContainerOwner
+
+		BeforeEach(func() {
+			var err error
+			worker, err = workerFactory.SaveWorker(atcWorker, 5*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+			expiries := ContainerOwnerExpiries{
+				GraceTime: 2 * time.Minute,
+				Min:       5 * time.Minute,
+				Max:       1 * time.Hour,
+			}
+			resourceConfig, err := resourceConfigFactory.FindOrCreateResourceConfig(
+				logger,
+				"some-resource-type",
+				atc.Source{"some": "source"},
+				creds.VersionedResourceTypes{},
+			)
+			Expect(err).ToNot(HaveOccurred())
+			checkContainerOwner = NewResourceConfigCheckSessionContainerOwner(resourceConfig, expiries)
+			oneOffBuild, err := defaultTeam.CreateOneOffBuild()
+			Expect(err).ToNot(HaveOccurred())
+
+			buildStepContainerOwner = NewBuildStepContainerOwner(oneOffBuild.ID(), atc.PlanID("1"), 1)
+		})
+
+		It("returns the number of containers of a given type that exist on the worker", func() {
+			_, err := worker.CreateContainer(checkContainerOwner, ContainerMetadata{Type: "check"})
+			Expect(err).ToNot(HaveOccurred())
+			_, err = worker.CreateContainer(buildStepContainerOwner, ContainerMetadata{Type: "task"})
+			Expect(err).ToNot(HaveOccurred())
+			_, err = worker.CreateContainer(buildStepContainerOwner, ContainerMetadata{Type: "task"})
+			Expect(err).ToNot(HaveOccurred())
+			_, err = worker.CreateContainer(buildStepContainerOwner, ContainerMetadata{Type: "put"})
+			Expect(err).ToNot(HaveOccurred())
+			_, err = worker.CreateContainer(buildStepContainerOwner, ContainerMetadata{Type: "get"})
+			Expect(err).ToNot(HaveOccurred())
+
+			numBuildContainers, err := worker.ActiveBuildContainers()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(numBuildContainers).To(Equal(4))
+		})
+
+		It("returns only the containers on the given worker", func() {
+			atcWorker2 := atcWorker
+			atcWorker2.Name = "some-name2"
+			atcWorker2.GardenAddr = "some-garden-addr-other"
+			otherWorker, err := workerFactory.SaveWorker(atcWorker2, 5*time.Minute)
+
+			Expect(err).NotTo(HaveOccurred())
+			_, err = otherWorker.CreateContainer(buildStepContainerOwner, ContainerMetadata{Type: "put"})
+			Expect(err).ToNot(HaveOccurred())
+			_, err = worker.CreateContainer(buildStepContainerOwner, ContainerMetadata{Type: "put"})
+			Expect(err).ToNot(HaveOccurred())
+
+			numBuildContainers, err := worker.ActiveBuildContainers()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(numBuildContainers).To(Equal(1))
+		})
+	})
 })

@@ -32,6 +32,7 @@ type Worker interface {
 
 	ActiveContainers() int
 	ActiveVolumes() int
+	ActiveBuildContainers() int
 
 	Description() string
 	Name() string
@@ -58,16 +59,17 @@ type gardenWorker struct {
 
 	clock clock.Clock
 
-	activeContainers int
-	activeVolumes    int
-	resourceTypes    []atc.WorkerResourceType
-	platform         string
-	tags             atc.Tags
-	teamID           int
-	name             string
-	startTime        int64
-	ephemeral        bool
-	version          *string
+	activeContainers      int
+	activeVolumes         int
+	activeBuildContainers int
+	resourceTypes         []atc.WorkerResourceType
+	platform              string
+	tags                  atc.Tags
+	teamID                int
+	name                  string
+	startTime             int64
+	ephemeral             bool
+	version               *string
 }
 
 func NewGardenWorker(
@@ -85,17 +87,18 @@ func NewGardenWorker(
 		volumeClient:       volumeClient,
 		containerProvider:  containerProvider,
 
-		clock:            clock,
-		activeContainers: dbWorker.ActiveContainers(),
-		activeVolumes:    dbWorker.ActiveVolumes(),
-		resourceTypes:    dbWorker.ResourceTypes(),
-		platform:         dbWorker.Platform(),
-		tags:             dbWorker.Tags(),
-		teamID:           dbWorker.TeamID(),
-		name:             dbWorker.Name(),
-		startTime:        dbWorker.StartTime(),
-		version:          dbWorker.Version(),
-		ephemeral:        dbWorker.Ephemeral(),
+		clock:                 clock,
+		activeContainers:      dbWorker.ActiveContainers(),
+		activeVolumes:         dbWorker.ActiveVolumes(),
+		activeBuildContainers: dbWorker.ActiveBuildContainers(),
+		resourceTypes:         dbWorker.ResourceTypes(),
+		platform:              dbWorker.Platform(),
+		tags:                  dbWorker.Tags(),
+		teamID:                dbWorker.TeamID(),
+		name:                  dbWorker.Name(),
+		startTime:             dbWorker.StartTime(),
+		version:               dbWorker.Version(),
+		ephemeral:             dbWorker.Ephemeral(),
 	}
 }
 
@@ -191,6 +194,10 @@ func (worker *gardenWorker) ActiveContainers() int {
 
 func (worker *gardenWorker) ActiveVolumes() int {
 	return worker.activeVolumes
+}
+
+func (worker *gardenWorker) ActiveBuildContainers() int {
+	return worker.activeBuildContainers
 }
 
 func (worker *gardenWorker) Satisfying(logger lager.Logger, spec WorkerSpec, resourceTypes creds.VersionedResourceTypes) (Worker, error) {

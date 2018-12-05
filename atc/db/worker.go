@@ -42,6 +42,7 @@ type Worker interface {
 	NoProxy() string
 	ActiveContainers() int
 	ActiveVolumes() int
+	ActiveBuildContainers() (int, error)
 	ResourceTypes() []atc.WorkerResourceType
 	Platform() string
 	Tags() []string
@@ -320,6 +321,20 @@ func (worker *worker) CreateContainer(owner ContainerOwner, meta ContainerMetada
 		*metadata,
 		worker.conn,
 	), nil
+}
+
+func (worker *worker) ActiveBuildContainers() (int, error) {
+	var count int
+	err := psql.Select("count(*)").From("containers").Where(
+		sq.And{
+			sq.Eq{"worker_name": worker.name},
+			sq.NotEq{"build_id": nil},
+		}).
+		RunWith(worker.conn).
+		QueryRow().
+		Scan(&count)
+
+	return count, err
 }
 
 func (worker *worker) findContainer(whereClause sq.Sqlizer) (CreatingContainer, CreatedContainer, error) {
