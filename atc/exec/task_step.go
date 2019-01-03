@@ -12,11 +12,10 @@ import (
 	"strconv"
 	"strings"
 
-	boshtemplate "github.com/cloudfoundry/bosh-cli/director/template"
-
 	"code.cloudfoundry.org/garden"
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/lager/lagerctx"
+	boshtemplate "github.com/cloudfoundry/bosh-cli/director/template"
 	"github.com/concourse/concourse/atc"
 	"github.com/concourse/concourse/atc/creds"
 	"github.com/concourse/concourse/atc/db"
@@ -442,6 +441,11 @@ func (action *TaskStep) registerOutputs(logger lager.Logger, repository *worker.
 			if filepath.Clean(mount.MountPath) == filepath.Clean(outputPath) {
 				source := newTaskArtifactSource(mount.Volume)
 				repository.RegisterSource(worker.ArtifactName(outputName), source)
+
+				_, err := mount.Volume.InitializeArtifact(outputName, action.buildID)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}

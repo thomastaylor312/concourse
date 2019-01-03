@@ -47,7 +47,7 @@ func (s *Server) CreateArtifact(team db.Team) http.Handler {
 		// I think leaving the race condition is fine for now. Worst case
 		// is a fly execute will fail and the user will need to rerun it.
 
-		artifact, err := volume.InitializeArtifact("/", "")
+		artifact, err := volume.InitializeArtifact("/", 0)
 		if err != nil {
 			hLog.Error("failed-to-initialize-artifact", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -65,7 +65,6 @@ func (s *Server) CreateArtifact(team db.Team) http.Handler {
 
 		json.NewEncoder(w).Encode(atc.WorkerArtifact{
 			ID:        artifact.ID(),
-			Checksum:  "",
 			Path:      "/",
 			CreatedAt: artifact.CreatedAt().Unix(),
 		})

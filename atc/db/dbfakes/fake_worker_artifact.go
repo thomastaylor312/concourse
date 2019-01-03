@@ -9,15 +9,15 @@ import (
 )
 
 type FakeWorkerArtifact struct {
-	ChecksumStub        func() string
-	checksumMutex       sync.RWMutex
-	checksumArgsForCall []struct {
+	BuildIDStub        func() int
+	buildIDMutex       sync.RWMutex
+	buildIDArgsForCall []struct {
 	}
-	checksumReturns struct {
-		result1 string
+	buildIDReturns struct {
+		result1 int
 	}
-	checksumReturnsOnCall map[int]struct {
-		result1 string
+	buildIDReturnsOnCall map[int]struct {
+		result1 int
 	}
 	CreatedAtStub        func() time.Time
 	createdAtMutex       sync.RWMutex
@@ -68,55 +68,55 @@ type FakeWorkerArtifact struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeWorkerArtifact) Checksum() string {
-	fake.checksumMutex.Lock()
-	ret, specificReturn := fake.checksumReturnsOnCall[len(fake.checksumArgsForCall)]
-	fake.checksumArgsForCall = append(fake.checksumArgsForCall, struct {
+func (fake *FakeWorkerArtifact) BuildID() int {
+	fake.buildIDMutex.Lock()
+	ret, specificReturn := fake.buildIDReturnsOnCall[len(fake.buildIDArgsForCall)]
+	fake.buildIDArgsForCall = append(fake.buildIDArgsForCall, struct {
 	}{})
-	fake.recordInvocation("Checksum", []interface{}{})
-	fake.checksumMutex.Unlock()
-	if fake.ChecksumStub != nil {
-		return fake.ChecksumStub()
+	fake.recordInvocation("BuildID", []interface{}{})
+	fake.buildIDMutex.Unlock()
+	if fake.BuildIDStub != nil {
+		return fake.BuildIDStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.checksumReturns
+	fakeReturns := fake.buildIDReturns
 	return fakeReturns.result1
 }
 
-func (fake *FakeWorkerArtifact) ChecksumCallCount() int {
-	fake.checksumMutex.RLock()
-	defer fake.checksumMutex.RUnlock()
-	return len(fake.checksumArgsForCall)
+func (fake *FakeWorkerArtifact) BuildIDCallCount() int {
+	fake.buildIDMutex.RLock()
+	defer fake.buildIDMutex.RUnlock()
+	return len(fake.buildIDArgsForCall)
 }
 
-func (fake *FakeWorkerArtifact) ChecksumCalls(stub func() string) {
-	fake.checksumMutex.Lock()
-	defer fake.checksumMutex.Unlock()
-	fake.ChecksumStub = stub
+func (fake *FakeWorkerArtifact) BuildIDCalls(stub func() int) {
+	fake.buildIDMutex.Lock()
+	defer fake.buildIDMutex.Unlock()
+	fake.BuildIDStub = stub
 }
 
-func (fake *FakeWorkerArtifact) ChecksumReturns(result1 string) {
-	fake.checksumMutex.Lock()
-	defer fake.checksumMutex.Unlock()
-	fake.ChecksumStub = nil
-	fake.checksumReturns = struct {
-		result1 string
+func (fake *FakeWorkerArtifact) BuildIDReturns(result1 int) {
+	fake.buildIDMutex.Lock()
+	defer fake.buildIDMutex.Unlock()
+	fake.BuildIDStub = nil
+	fake.buildIDReturns = struct {
+		result1 int
 	}{result1}
 }
 
-func (fake *FakeWorkerArtifact) ChecksumReturnsOnCall(i int, result1 string) {
-	fake.checksumMutex.Lock()
-	defer fake.checksumMutex.Unlock()
-	fake.ChecksumStub = nil
-	if fake.checksumReturnsOnCall == nil {
-		fake.checksumReturnsOnCall = make(map[int]struct {
-			result1 string
+func (fake *FakeWorkerArtifact) BuildIDReturnsOnCall(i int, result1 int) {
+	fake.buildIDMutex.Lock()
+	defer fake.buildIDMutex.Unlock()
+	fake.BuildIDStub = nil
+	if fake.buildIDReturnsOnCall == nil {
+		fake.buildIDReturnsOnCall = make(map[int]struct {
+			result1 int
 		})
 	}
-	fake.checksumReturnsOnCall[i] = struct {
-		result1 string
+	fake.buildIDReturnsOnCall[i] = struct {
+		result1 int
 	}{result1}
 }
 
@@ -345,8 +345,8 @@ func (fake *FakeWorkerArtifact) VolumeReturnsOnCall(i int, result1 db.CreatedVol
 func (fake *FakeWorkerArtifact) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.checksumMutex.RLock()
-	defer fake.checksumMutex.RUnlock()
+	fake.buildIDMutex.RLock()
+	defer fake.buildIDMutex.RUnlock()
 	fake.createdAtMutex.RLock()
 	defer fake.createdAtMutex.RUnlock()
 	fake.iDMutex.RLock()

@@ -12,16 +12,18 @@ import (
 )
 
 type UserArtifactStep struct {
-	id       atc.PlanID
-	name     worker.ArtifactName
-	delegate BuildStepDelegate
+	id         atc.PlanID
+	name       string
+	artifactID int
+	delegate   BuildStepDelegate
 }
 
-func UserArtifact(id atc.PlanID, name worker.ArtifactName, delegate BuildStepDelegate) Step {
+func UserArtifact(id atc.PlanID, plan atc.UserArtifactPlan, delegate BuildStepDelegate) Step {
 	return &UserArtifactStep{
-		id:       id,
-		name:     name,
-		delegate: delegate,
+		id:         id,
+		name:       plan.Name,
+		artifactID: plan.ArtifactID,
+		delegate:   delegate,
 	}
 }
 
@@ -31,7 +33,7 @@ func (step *UserArtifactStep) Run(ctx context.Context, state RunState) error {
 		"name":    step.name,
 	})
 
-	state.Artifacts().RegisterSource(step.name, streamSource{
+	state.Artifacts().RegisterSource(worker.ArtifactName(step.name), streamSource{
 		logger,
 		step,
 		state,

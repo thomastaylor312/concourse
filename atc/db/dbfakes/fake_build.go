@@ -42,6 +42,18 @@ type FakeBuild struct {
 		result2 bool
 		result3 error
 	}
+	ArtifactsStub        func() ([]db.WorkerArtifact, error)
+	artifactsMutex       sync.RWMutex
+	artifactsArgsForCall []struct {
+	}
+	artifactsReturns struct {
+		result1 []db.WorkerArtifact
+		result2 error
+	}
+	artifactsReturnsOnCall map[int]struct {
+		result1 []db.WorkerArtifact
+		result2 error
+	}
 	DeleteStub        func() (bool, error)
 	deleteMutex       sync.RWMutex
 	deleteArgsForCall []struct {
@@ -600,6 +612,61 @@ func (fake *FakeBuild) AcquireTrackingLockReturnsOnCall(i int, result1 lock.Lock
 		result2 bool
 		result3 error
 	}{result1, result2, result3}
+}
+
+func (fake *FakeBuild) Artifacts() ([]db.WorkerArtifact, error) {
+	fake.artifactsMutex.Lock()
+	ret, specificReturn := fake.artifactsReturnsOnCall[len(fake.artifactsArgsForCall)]
+	fake.artifactsArgsForCall = append(fake.artifactsArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Artifacts", []interface{}{})
+	fake.artifactsMutex.Unlock()
+	if fake.ArtifactsStub != nil {
+		return fake.ArtifactsStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.artifactsReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeBuild) ArtifactsCallCount() int {
+	fake.artifactsMutex.RLock()
+	defer fake.artifactsMutex.RUnlock()
+	return len(fake.artifactsArgsForCall)
+}
+
+func (fake *FakeBuild) ArtifactsCalls(stub func() ([]db.WorkerArtifact, error)) {
+	fake.artifactsMutex.Lock()
+	defer fake.artifactsMutex.Unlock()
+	fake.ArtifactsStub = stub
+}
+
+func (fake *FakeBuild) ArtifactsReturns(result1 []db.WorkerArtifact, result2 error) {
+	fake.artifactsMutex.Lock()
+	defer fake.artifactsMutex.Unlock()
+	fake.ArtifactsStub = nil
+	fake.artifactsReturns = struct {
+		result1 []db.WorkerArtifact
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBuild) ArtifactsReturnsOnCall(i int, result1 []db.WorkerArtifact, result2 error) {
+	fake.artifactsMutex.Lock()
+	defer fake.artifactsMutex.Unlock()
+	fake.ArtifactsStub = nil
+	if fake.artifactsReturnsOnCall == nil {
+		fake.artifactsReturnsOnCall = make(map[int]struct {
+			result1 []db.WorkerArtifact
+			result2 error
+		})
+	}
+	fake.artifactsReturnsOnCall[i] = struct {
+		result1 []db.WorkerArtifact
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeBuild) Delete() (bool, error) {
@@ -2775,6 +2842,8 @@ func (fake *FakeBuild) Invocations() map[string][][]interface{} {
 	defer fake.abortNotifierMutex.RUnlock()
 	fake.acquireTrackingLockMutex.RLock()
 	defer fake.acquireTrackingLockMutex.RUnlock()
+	fake.artifactsMutex.RLock()
+	defer fake.artifactsMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
 	fake.endTimeMutex.RLock()

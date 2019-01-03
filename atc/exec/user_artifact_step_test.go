@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	"code.cloudfoundry.org/lager/lagertest"
+	"github.com/concourse/concourse/atc"
 	"github.com/concourse/concourse/atc/exec"
 	"github.com/concourse/concourse/atc/exec/execfakes"
 	"github.com/concourse/concourse/atc/worker/workerfakes"
@@ -43,7 +44,10 @@ var _ = Describe("UserArtifactStep", func() {
 	JustBeforeEach(func() {
 		step = exec.UserArtifact(
 			"some-plan-id",
-			"some-name",
+			atc.UserArtifactPlan{
+				Name:       "some-name",
+				ArtifactID: 123,
+			},
 			delegate,
 		)
 

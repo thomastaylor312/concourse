@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/lager"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/concourse/concourse/atc"
 	"github.com/concourse/concourse/atc/creds"
@@ -91,6 +90,8 @@ type Build interface {
 
 	Events(uint) (EventSource, error)
 	SaveEvent(event atc.Event) error
+
+	Artifacts() ([]WorkerArtifact, error)
 
 	SaveOutput(lager.Logger, string, atc.Source, creds.VersionedResourceTypes, atc.Version, ResourceConfigMetadataFields, string, string) error
 	UseInputs(inputs []BuildInput) error
@@ -773,6 +774,39 @@ func (b *build) SaveEvent(event atc.Event) error {
 	}
 
 	return b.conn.Bus().Notify(buildEventsChannel(b.id))
+}
+
+func (b *build) Artifacts() ([]WorkerArtifact, error) {
+	artifacts := []WorkerArtifact{}
+
+	rows, err := psql.Select("id", "path", "created_at").
+		From("worker_artifacts").
+		Where(sq.Eq{
+			"build_id": b.ID,
+		}).
+		RunWith(b.conn).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+
+	defer Close(rows)
+
+	for rows.Next() {
+		wa := artifact{
+			conn:    b.conn,
+			buildID: b.ID(),
+		}
+
+		err = rows.Scan(&wa.id, &wa.path, &wa.createdAt)
+		if err != nil {
+			return nil, err
+		}
+
+		artifacts = append(artifacts, &wa)
+	}
+
+	return artifacts, nil
 }
 
 func (b *build) SaveOutput(
