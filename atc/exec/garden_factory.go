@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"code.cloudfoundry.org/lager"
-
 	boshtemplate "github.com/cloudfoundry/bosh-cli/director/template"
 	"github.com/concourse/concourse/atc"
 	"github.com/concourse/concourse/atc/creds"
@@ -188,6 +187,39 @@ func (factory *gardenFactory) Task(
 	)
 
 	return LogError(taskStep, delegate)
+}
+
+func (factory *gardenFactory) ArtifactStep(
+	logger lager.Logger,
+	plan atc.Plan,
+	build db.Build,
+	delegate BuildStepDelegate,
+) Step {
+
+	artifact, err := build.Artifact(plan.UserArtifact.ArtifactID)
+	if err != nil {
+		panic(err)
+	}
+
+	volume, found, err := artifact.Volume(build.TeamID())
+	if err != nil {
+		panic(err)
+	}
+
+	if !found {
+		panic("not found")
+	}
+
+	workerVolume, found, err := factory.workerClient.LookupVolume(logger, volume.Handle())
+	if err != nil {
+		panic(err)
+	}
+
+	if !found {
+		panic("not found")
+	}
+
+	return NewArtifactStep(plan.ID, plan.UserArtifact.Name, workerVolume, delegate)
 }
 
 func (factory *gardenFactory) taskWorkingDirectory(sourceName worker.ArtifactName) string {

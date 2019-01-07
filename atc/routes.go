@@ -11,7 +11,6 @@ const (
 	CreateBuild         = "CreateBuild"
 	ListBuilds          = "ListBuilds"
 	BuildEvents         = "BuildEvents"
-	BuildArtifacts      = "BuildArtifacts"
 	BuildResources      = "BuildResources"
 	AbortBuild          = "AbortBuild"
 	GetBuildPreparation = "GetBuildPreparation"

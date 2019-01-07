@@ -39,12 +39,6 @@ type RunState interface {
 
 	Result(atc.PlanID, interface{}) bool
 	StoreResult(atc.PlanID, interface{})
-
-	SendUserInput(atc.PlanID, io.ReadCloser)
-	ReadUserInput(atc.PlanID, InputHandler) error
-
-	ReadPlanOutput(atc.PlanID, io.Writer)
-	SendPlanOutput(atc.PlanID, OutputHandler) error
 }
 
 // ExitStatus is the resulting exit code from the process that the step ran.

@@ -92,6 +92,7 @@ type Build interface {
 	SaveEvent(event atc.Event) error
 
 	Artifacts() ([]WorkerArtifact, error)
+	Artifact(artifactID int) (WorkerArtifact, error)
 
 	SaveOutput(lager.Logger, string, atc.Source, creds.VersionedResourceTypes, atc.Version, ResourceConfigMetadataFields, string, string) error
 	UseInputs(inputs []BuildInput) error
@@ -143,6 +144,7 @@ type build struct {
 
 var ErrBuildDisappeared = errors.New("build disappeared from db")
 var ErrBuildHasNoPipeline = errors.New("build has no pipeline")
+var ErrBuildArtifactNotFound = errors.New("build artifact not found")
 
 func (b *build) ID() int                      { return b.id }
 func (b *build) Name() string                 { return b.name }
@@ -774,6 +776,23 @@ func (b *build) SaveEvent(event atc.Event) error {
 	}
 
 	return b.conn.Bus().Notify(buildEventsChannel(b.id))
+}
+
+func (b *build) Artifact(artifactID int) (WorkerArtifact, error) {
+
+	artifact := artifact{
+		conn: b.conn,
+	}
+
+	err := psql.Select("id", "path", "created_at").
+		From("worker_artifacts").
+		Where(sq.Eq{
+			"id": artifactID,
+		}).
+		RunWith(b.conn).
+		Scan(&artifact.id, &artifact.path, &artifact.createdAt)
+
+	return &artifact, err
 }
 
 func (b *build) Artifacts() ([]WorkerArtifact, error) {

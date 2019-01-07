@@ -192,7 +192,7 @@ var _ = Describe("Artifacts API", func() {
 
 	})
 
-	FDescribe("GET /api/v1/teams/:team_name/artifacts/:artifact_id", func() {
+	Describe("GET /api/v1/teams/:team_name/artifacts/:artifact_id", func() {
 		var response *http.Response
 
 		BeforeEach(func() {

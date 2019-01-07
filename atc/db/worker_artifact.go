@@ -17,7 +17,7 @@ type WorkerArtifact interface {
 	Path() string
 	BuildID() int
 	CreatedAt() time.Time
-	Volume(int) (CreatedVolume, bool, error)
+	Volume(teamID int) (CreatedVolume, bool, error)
 }
 
 type artifact struct {
