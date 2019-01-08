@@ -14,7 +14,7 @@ import (
 
 type WorkerArtifact interface {
 	ID() int
-	Path() string
+	Name() string
 	BuildID() int
 	CreatedAt() time.Time
 	Volume(teamID int) (CreatedVolume, bool, error)
@@ -24,13 +24,13 @@ type artifact struct {
 	conn Conn
 
 	id        int
-	path      string
+	name      string
 	buildID   int
 	createdAt time.Time
 }
 
 func (a *artifact) ID() int              { return a.id }
-func (a *artifact) Path() string         { return a.path }
+func (a *artifact) Name() string         { return a.name }
 func (a *artifact) BuildID() int         { return a.buildID }
 func (a *artifact) CreatedAt() time.Time { return a.createdAt }
 
@@ -57,7 +57,7 @@ func saveWorkerArtifact(tx Tx, conn Conn, atcArtifact atc.WorkerArtifact) (Worke
 	var artifactID int
 
 	values := map[string]interface{}{
-		"path": atcArtifact.Path,
+		"name": atcArtifact.Name,
 	}
 
 	if atcArtifact.BuildID != 0 {
@@ -96,14 +96,14 @@ func getWorkerArtifact(tx Tx, conn Conn, id int) (WorkerArtifact, bool, error) {
 
 	artifact := &artifact{conn: conn}
 
-	err := psql.Select("id", "created_at", "path", "build_id").
+	err := psql.Select("id", "created_at", "name", "build_id").
 		From("worker_artifacts").
 		Where(sq.Eq{
 			"id": id,
 		}).
 		RunWith(tx).
 		QueryRow().
-		Scan(&artifact.id, &createdAtTime, &artifact.path, &buildID)
+		Scan(&artifact.id, &createdAtTime, &artifact.name, &buildID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, false, nil

@@ -784,13 +784,13 @@ func (b *build) Artifact(artifactID int) (WorkerArtifact, error) {
 		conn: b.conn,
 	}
 
-	err := psql.Select("id", "path", "created_at").
+	err := psql.Select("id", "name", "created_at").
 		From("worker_artifacts").
 		Where(sq.Eq{
 			"id": artifactID,
 		}).
 		RunWith(b.conn).
-		Scan(&artifact.id, &artifact.path, &artifact.createdAt)
+		Scan(&artifact.id, &artifact.name, &artifact.createdAt)
 
 	return &artifact, err
 }
@@ -798,10 +798,10 @@ func (b *build) Artifact(artifactID int) (WorkerArtifact, error) {
 func (b *build) Artifacts() ([]WorkerArtifact, error) {
 	artifacts := []WorkerArtifact{}
 
-	rows, err := psql.Select("id", "path", "created_at").
+	rows, err := psql.Select("id", "name", "created_at").
 		From("worker_artifacts").
 		Where(sq.Eq{
-			"build_id": b.ID,
+			"build_id": b.id,
 		}).
 		RunWith(b.conn).
 		Query()
@@ -814,10 +814,10 @@ func (b *build) Artifacts() ([]WorkerArtifact, error) {
 	for rows.Next() {
 		wa := artifact{
 			conn:    b.conn,
-			buildID: b.ID(),
+			buildID: b.id,
 		}
 
-		err = rows.Scan(&wa.id, &wa.path, &wa.createdAt)
+		err = rows.Scan(&wa.id, &wa.name, &wa.createdAt)
 		if err != nil {
 			return nil, err
 		}

@@ -1,7 +1,7 @@
 BEGIN;
   CREATE TABLE worker_artifacts (
     id SERIAL PRIMARY KEY,
-    path TEXT NOT NULL,
+    name TEXT NOT NULL,
     build_id INTEGER NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
   );

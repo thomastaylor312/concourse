@@ -152,7 +152,7 @@ type CreatedVolume interface {
 	WorkerName() string
 
 	InitializeResourceCache(UsedResourceCache) error
-	InitializeArtifact(path string, buildID int) (WorkerArtifact, error)
+	InitializeArtifact(name string, buildID int) (WorkerArtifact, error)
 	InitializeTaskCache(int, string, string) error
 
 	ContainerHandle() string
@@ -392,7 +392,7 @@ func (volume *createdVolume) InitializeResourceCache(resourceCache UsedResourceC
 	return nil
 }
 
-func (volume *createdVolume) InitializeArtifact(path string, buildID int) (WorkerArtifact, error) {
+func (volume *createdVolume) InitializeArtifact(name string, buildID int) (WorkerArtifact, error) {
 
 	tx, err := volume.conn.Begin()
 	if err != nil {
@@ -402,7 +402,7 @@ func (volume *createdVolume) InitializeArtifact(path string, buildID int) (Worke
 	defer Rollback(tx)
 
 	atcWorkerArtifact := atc.WorkerArtifact{
-		Path:    path,
+		Name:    name,
 		BuildID: buildID,
 	}
 

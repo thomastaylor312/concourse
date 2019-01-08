@@ -16,7 +16,7 @@ func WorkerArtifacts(artifacts []db.WorkerArtifact) []atc.WorkerArtifact {
 func WorkerArtifact(artifact db.WorkerArtifact) atc.WorkerArtifact {
 	return atc.WorkerArtifact{
 		ID:        artifact.ID(),
-		Path:      artifact.Path(),
+		Name:      artifact.Name(),
 		BuildID:   artifact.BuildID(),
 		CreatedAt: artifact.CreatedAt().Unix(),
 	}

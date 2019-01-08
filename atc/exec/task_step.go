@@ -487,12 +487,8 @@ type taskArtifactSource struct {
 	worker.Volume
 }
 
-func newTaskArtifactSource(
-	volume worker.Volume,
-) *taskArtifactSource {
-	return &taskArtifactSource{
-		volume,
-	}
+func newTaskArtifactSource(volume worker.Volume) *taskArtifactSource {
+	return &taskArtifactSource{volume}
 }
 
 func (src *taskArtifactSource) StreamTo(logger lager.Logger, destination worker.ArtifactDestination) error {
