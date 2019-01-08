@@ -113,8 +113,7 @@ func constructResourceConfigDescriptor(
 	resource Resource,
 ) (ResourceConfigDescriptor, error) {
 	resourceConfigDescriptor := ResourceConfigDescriptor{
-		Source:   source,
-		Resource: resource,
+		Source: source,
 	}
 
 	customType, found := resourceTypes.Lookup(resourceTypeName)
@@ -132,6 +131,10 @@ func constructResourceConfigDescriptor(
 		)
 		if err != nil {
 			return ResourceConfigDescriptor{}, err
+		}
+
+		if customType.UniqueVersionHistory {
+			resourceConfigDescriptor.UniqueForResource = resource
 		}
 
 		resourceConfigDescriptor.CreatedByResourceCache = &ResourceCacheDescriptor{

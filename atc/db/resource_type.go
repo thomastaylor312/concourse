@@ -34,6 +34,7 @@ type ResourceType interface {
 	CheckEvery() string
 	CheckError() error
 	ResourceConfigCheckError() error
+	UniqueVersionHistory() bool
 
 	SetResourceConfig(lager.Logger, atc.Source, creds.VersionedResourceTypes) (ResourceConfig, error)
 	SetCheckError(error) error
@@ -51,13 +52,14 @@ func (resourceTypes ResourceTypes) Deserialize() atc.VersionedResourceTypes {
 	for _, t := range resourceTypes {
 		versionedResourceTypes = append(versionedResourceTypes, atc.VersionedResourceType{
 			ResourceType: atc.ResourceType{
-				Name:       t.Name(),
-				Type:       t.Type(),
-				Source:     t.Source(),
-				Privileged: t.Privileged(),
-				CheckEvery: t.CheckEvery(),
-				Tags:       t.Tags(),
-				Params:     t.Params(),
+				Name:                 t.Name(),
+				Type:                 t.Type(),
+				Source:               t.Source(),
+				Privileged:           t.Privileged(),
+				CheckEvery:           t.CheckEvery(),
+				Tags:                 t.Tags(),
+				Params:               t.Params(),
+				UniqueVersionHistory: t.UniqueVersionHistory(),
 			},
 			Version: t.Version(),
 		})
@@ -71,13 +73,14 @@ func (resourceTypes ResourceTypes) Configs() atc.ResourceTypes {
 
 	for _, r := range resourceTypes {
 		configs = append(configs, atc.ResourceType{
-			Name:       r.Name(),
-			Type:       r.Type(),
-			Source:     r.Source(),
-			Privileged: r.Privileged(),
-			CheckEvery: r.CheckEvery(),
-			Tags:       r.Tags(),
-			Params:     r.Params(),
+			Name:                 r.Name(),
+			Type:                 r.Type(),
+			Source:               r.Source(),
+			Privileged:           r.Privileged(),
+			CheckEvery:           r.CheckEvery(),
+			Tags:                 r.Tags(),
+			Params:               r.Params(),
+			UniqueVersionHistory: r.UniqueVersionHistory(),
 		})
 	}
 
@@ -108,6 +111,7 @@ type resourceType struct {
 	checkEvery               string
 	checkError               error
 	resourceConfigCheckError error
+	uniqueVersionHistory     bool
 
 	conn        Conn
 	lockFactory lock.LockFactory
@@ -123,6 +127,7 @@ func (t *resourceType) Params() atc.Params              { return t.params }
 func (t *resourceType) Tags() atc.Tags                  { return t.tags }
 func (t *resourceType) CheckError() error               { return t.checkError }
 func (t *resourceType) ResourceConfigCheckError() error { return t.resourceConfigCheckError }
+func (t *resourceType) UniqueVersionHistory() bool      { return t.uniqueVersionHistory }
 
 func (t *resourceType) Version() atc.Version { return t.version }
 
@@ -238,6 +243,7 @@ func scanResourceType(t *resourceType, row scannable) error {
 	t.privileged = config.Privileged
 	t.tags = config.Tags
 	t.checkEvery = config.CheckEvery
+	t.uniqueVersionHistory = config.UniqueVersionHistory
 
 	if checkErr.Valid {
 		t.checkError = errors.New(checkErr.String)

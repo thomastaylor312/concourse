@@ -34,8 +34,8 @@ type ResourceConfigDescriptor struct {
 	// The resource's source configuration.
 	Source atc.Source
 
-	// The resource which will only be used it has unique version history
-	Resource Resource
+	// If this value is not nil, each resource will have its own version history
+	UniqueForResource Resource
 }
 
 //go:generate counterfeiter . ResourceConfig
@@ -400,8 +400,8 @@ func (r *ResourceConfigDescriptor) findOrCreate(logger lager.Logger, tx Tx, lock
 		hash := mapHash(r.Source)
 
 		var resourceID *int
-		if unique || r.Resource != nil && r.Resource.UniqueVersionHistory() {
-			rid := r.Resource.ID()
+		if unique || r.UniqueForResource != nil {
+			rid := r.UniqueForResource.ID()
 			resourceID = &rid
 		}
 
@@ -504,8 +504,8 @@ func (r *ResourceConfigDescriptor) findWithParentID(tx Tx, parentColumnName stri
 	var whereClause sq.Eq
 
 	// If the base resource type or the resource does not specify a unique version history
-	if unique || r.Resource != nil && r.Resource.UniqueVersionHistory() {
-		whereClause = sq.Eq{"unique_versions_resource_id": r.Resource.ID()}
+	if unique || r.UniqueForResource != nil {
+		whereClause = sq.Eq{"unique_versions_resource_id": r.UniqueForResource.ID()}
 	} else {
 		whereClause = sq.Eq{"unique_versions_resource_id": nil}
 	}

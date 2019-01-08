@@ -149,6 +149,16 @@ type FakeResourceType struct {
 	typeReturnsOnCall map[int]struct {
 		result1 string
 	}
+	UniqueVersionHistoryStub        func() bool
+	uniqueVersionHistoryMutex       sync.RWMutex
+	uniqueVersionHistoryArgsForCall []struct {
+	}
+	uniqueVersionHistoryReturns struct {
+		result1 bool
+	}
+	uniqueVersionHistoryReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	VersionStub        func() atc.Version
 	versionMutex       sync.RWMutex
 	versionArgsForCall []struct {
@@ -863,6 +873,58 @@ func (fake *FakeResourceType) TypeReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
+func (fake *FakeResourceType) UniqueVersionHistory() bool {
+	fake.uniqueVersionHistoryMutex.Lock()
+	ret, specificReturn := fake.uniqueVersionHistoryReturnsOnCall[len(fake.uniqueVersionHistoryArgsForCall)]
+	fake.uniqueVersionHistoryArgsForCall = append(fake.uniqueVersionHistoryArgsForCall, struct {
+	}{})
+	fake.recordInvocation("UniqueVersionHistory", []interface{}{})
+	fake.uniqueVersionHistoryMutex.Unlock()
+	if fake.UniqueVersionHistoryStub != nil {
+		return fake.UniqueVersionHistoryStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.uniqueVersionHistoryReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeResourceType) UniqueVersionHistoryCallCount() int {
+	fake.uniqueVersionHistoryMutex.RLock()
+	defer fake.uniqueVersionHistoryMutex.RUnlock()
+	return len(fake.uniqueVersionHistoryArgsForCall)
+}
+
+func (fake *FakeResourceType) UniqueVersionHistoryCalls(stub func() bool) {
+	fake.uniqueVersionHistoryMutex.Lock()
+	defer fake.uniqueVersionHistoryMutex.Unlock()
+	fake.UniqueVersionHistoryStub = stub
+}
+
+func (fake *FakeResourceType) UniqueVersionHistoryReturns(result1 bool) {
+	fake.uniqueVersionHistoryMutex.Lock()
+	defer fake.uniqueVersionHistoryMutex.Unlock()
+	fake.UniqueVersionHistoryStub = nil
+	fake.uniqueVersionHistoryReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeResourceType) UniqueVersionHistoryReturnsOnCall(i int, result1 bool) {
+	fake.uniqueVersionHistoryMutex.Lock()
+	defer fake.uniqueVersionHistoryMutex.Unlock()
+	fake.UniqueVersionHistoryStub = nil
+	if fake.uniqueVersionHistoryReturnsOnCall == nil {
+		fake.uniqueVersionHistoryReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.uniqueVersionHistoryReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeResourceType) Version() atc.Version {
 	fake.versionMutex.Lock()
 	ret, specificReturn := fake.versionReturnsOnCall[len(fake.versionArgsForCall)]
@@ -944,6 +1006,8 @@ func (fake *FakeResourceType) Invocations() map[string][][]interface{} {
 	defer fake.tagsMutex.RUnlock()
 	fake.typeMutex.RLock()
 	defer fake.typeMutex.RUnlock()
+	fake.uniqueVersionHistoryMutex.RLock()
+	defer fake.uniqueVersionHistoryMutex.RUnlock()
 	fake.versionMutex.RLock()
 	defer fake.versionMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
