@@ -2,14 +2,21 @@ package exec
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/lager/lagerctx"
 	"github.com/concourse/concourse/atc"
 	"github.com/concourse/concourse/atc/db"
+	"github.com/concourse/concourse/atc/exec/artifact"
 	"github.com/concourse/concourse/atc/worker"
 )
+
+type ArtifactVolumeNotFoundErr string
+
+func (e ArtifactVolumeNotFoundErr) Error() string {
+	return fmt.Sprintf("volume for worker artifact '%s' not found", e)
+}
 
 type ArtifactStep struct {
 	plan         atc.Plan
@@ -33,18 +40,18 @@ func (step *ArtifactStep) Run(ctx context.Context, state RunState) error {
 		"plan-id": step.plan.ID,
 	})
 
-	artifact, err := step.build.Artifact(step.plan.UserArtifact.ArtifactID)
+	buildArtifact, err := step.build.Artifact(step.plan.UserArtifact.ArtifactID)
 	if err != nil {
 		return err
 	}
 
-	volume, found, err := artifact.Volume(step.build.TeamID())
+	volume, found, err := buildArtifact.Volume(step.build.TeamID())
 	if err != nil {
 		return err
 	}
 
 	if !found {
-		return errors.New("Not Found")
+		return ArtifactVolumeNotFoundErr(buildArtifact.Name())
 	}
 
 	workerVolume, found, err := step.workerClient.LookupVolume(logger, volume.Handle())
@@ -53,14 +60,14 @@ func (step *ArtifactStep) Run(ctx context.Context, state RunState) error {
 	}
 
 	if !found {
-		return errors.New("Not Found")
+		return ArtifactVolumeNotFoundErr(buildArtifact.Name())
 	}
 
 	logger.Info("register-artifact-source", lager.Data{
 		"handle": workerVolume.Handle(),
 	})
 
-	state.Artifacts().RegisterSource(worker.ArtifactName(step.plan.UserArtifact.Name), newTaskArtifactSource(
+	state.Artifacts().RegisterSource(artifact.Name(step.plan.UserArtifact.Name), newTaskArtifactSource(
 		workerVolume,
 	))
 

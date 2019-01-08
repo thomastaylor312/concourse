@@ -128,8 +128,8 @@ var _ = Describe("Artifacts API", func() {
 					It("invokes the initialization of an artifact on a volume", func() {
 						Expect(fakeVolume.InitializeArtifactCallCount()).To(Equal(1))
 
-						path, buildID := fakeVolume.InitializeArtifactArgsForCall(0)
-						Expect(path).To(Equal("/"))
+						name, buildID := fakeVolume.InitializeArtifactArgsForCall(0)
+						Expect(name).To(Equal(""))
 						Expect(buildID).To(Equal(0))
 					})
 
@@ -179,9 +179,9 @@ var _ = Describe("Artifacts API", func() {
 
 								Expect(body).To(MatchJSON(`{
 									"id": 0,
-									"path": "/",
+									"name": "",
 									"created_at": 42,
-									"checksum": ""
+									"build_id": 0
 								}`))
 							})
 						})

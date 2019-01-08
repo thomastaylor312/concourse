@@ -39,14 +39,14 @@ type FakeWorkerArtifact struct {
 	iDReturnsOnCall map[int]struct {
 		result1 int
 	}
-	PathStub        func() string
-	pathMutex       sync.RWMutex
-	pathArgsForCall []struct {
+	NameStub        func() string
+	nameMutex       sync.RWMutex
+	nameArgsForCall []struct {
 	}
-	pathReturns struct {
+	nameReturns struct {
 		result1 string
 	}
-	pathReturnsOnCall map[int]struct {
+	nameReturnsOnCall map[int]struct {
 		result1 string
 	}
 	VolumeStub        func(int) (db.CreatedVolume, bool, error)
@@ -224,54 +224,54 @@ func (fake *FakeWorkerArtifact) IDReturnsOnCall(i int, result1 int) {
 	}{result1}
 }
 
-func (fake *FakeWorkerArtifact) Path() string {
-	fake.pathMutex.Lock()
-	ret, specificReturn := fake.pathReturnsOnCall[len(fake.pathArgsForCall)]
-	fake.pathArgsForCall = append(fake.pathArgsForCall, struct {
+func (fake *FakeWorkerArtifact) Name() string {
+	fake.nameMutex.Lock()
+	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
+	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
 	}{})
-	fake.recordInvocation("Path", []interface{}{})
-	fake.pathMutex.Unlock()
-	if fake.PathStub != nil {
-		return fake.PathStub()
+	fake.recordInvocation("Name", []interface{}{})
+	fake.nameMutex.Unlock()
+	if fake.NameStub != nil {
+		return fake.NameStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.pathReturns
+	fakeReturns := fake.nameReturns
 	return fakeReturns.result1
 }
 
-func (fake *FakeWorkerArtifact) PathCallCount() int {
-	fake.pathMutex.RLock()
-	defer fake.pathMutex.RUnlock()
-	return len(fake.pathArgsForCall)
+func (fake *FakeWorkerArtifact) NameCallCount() int {
+	fake.nameMutex.RLock()
+	defer fake.nameMutex.RUnlock()
+	return len(fake.nameArgsForCall)
 }
 
-func (fake *FakeWorkerArtifact) PathCalls(stub func() string) {
-	fake.pathMutex.Lock()
-	defer fake.pathMutex.Unlock()
-	fake.PathStub = stub
+func (fake *FakeWorkerArtifact) NameCalls(stub func() string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = stub
 }
 
-func (fake *FakeWorkerArtifact) PathReturns(result1 string) {
-	fake.pathMutex.Lock()
-	defer fake.pathMutex.Unlock()
-	fake.PathStub = nil
-	fake.pathReturns = struct {
+func (fake *FakeWorkerArtifact) NameReturns(result1 string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = nil
+	fake.nameReturns = struct {
 		result1 string
 	}{result1}
 }
 
-func (fake *FakeWorkerArtifact) PathReturnsOnCall(i int, result1 string) {
-	fake.pathMutex.Lock()
-	defer fake.pathMutex.Unlock()
-	fake.PathStub = nil
-	if fake.pathReturnsOnCall == nil {
-		fake.pathReturnsOnCall = make(map[int]struct {
+func (fake *FakeWorkerArtifact) NameReturnsOnCall(i int, result1 string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = nil
+	if fake.nameReturnsOnCall == nil {
+		fake.nameReturnsOnCall = make(map[int]struct {
 			result1 string
 		})
 	}
-	fake.pathReturnsOnCall[i] = struct {
+	fake.nameReturnsOnCall[i] = struct {
 		result1 string
 	}{result1}
 }
@@ -351,8 +351,8 @@ func (fake *FakeWorkerArtifact) Invocations() map[string][][]interface{} {
 	defer fake.createdAtMutex.RUnlock()
 	fake.iDMutex.RLock()
 	defer fake.iDMutex.RUnlock()
-	fake.pathMutex.RLock()
-	defer fake.pathMutex.RUnlock()
+	fake.nameMutex.RLock()
+	defer fake.nameMutex.RUnlock()
 	fake.volumeMutex.RLock()
 	defer fake.volumeMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

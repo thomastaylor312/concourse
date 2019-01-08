@@ -5,22 +5,22 @@ import (
 	"sync"
 
 	"github.com/concourse/concourse/atc"
-	"github.com/concourse/concourse/atc/worker"
+	"github.com/concourse/concourse/atc/exec/artifact"
 )
 
 type runState struct {
-	artifacts *worker.ArtifactRepository
+	artifacts *artifact.Repository
 	results   *sync.Map
 }
 
 func NewRunState() RunState {
 	return &runState{
-		artifacts: worker.NewArtifactRepository(),
+		artifacts: artifact.NewRepository(),
 		results:   &sync.Map{},
 	}
 }
 
-func (state *runState) Artifacts() *worker.ArtifactRepository {
+func (state *runState) Artifacts() *artifact.Repository {
 	return state.artifacts
 }
 

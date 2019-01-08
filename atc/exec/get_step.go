@@ -12,6 +12,7 @@ import (
 	"github.com/concourse/concourse/atc"
 	"github.com/concourse/concourse/atc/creds"
 	"github.com/concourse/concourse/atc/db"
+	"github.com/concourse/concourse/atc/exec/artifact"
 	"github.com/concourse/concourse/atc/resource"
 	"github.com/concourse/concourse/atc/worker"
 )
@@ -198,7 +199,7 @@ func (step *GetStep) Run(ctx context.Context, state RunState) error {
 		return err
 	}
 
-	state.Artifacts().RegisterSource(worker.ArtifactName(step.name), &getArtifactSource{
+	state.Artifacts().RegisterSource(artifact.Name(step.name), &getArtifactSource{
 		resourceInstance: resourceInstance,
 		versionedSource:  versionedSource,
 	})

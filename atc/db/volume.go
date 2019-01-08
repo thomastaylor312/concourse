@@ -393,7 +393,6 @@ func (volume *createdVolume) InitializeResourceCache(resourceCache UsedResourceC
 }
 
 func (volume *createdVolume) InitializeArtifact(name string, buildID int) (WorkerArtifact, error) {
-
 	tx, err := volume.conn.Begin()
 	if err != nil {
 		return nil, err
