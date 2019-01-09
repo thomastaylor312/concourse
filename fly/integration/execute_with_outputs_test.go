@@ -34,7 +34,7 @@ var _ = Describe("Fly CLI", func() {
 	var expectedPlan atc.Plan
 	var workerArtifact = atc.WorkerArtifact{
 		ID:   125,
-		Path: "some-dir",
+		Name: "some-dir",
 	}
 
 	BeforeEach(func() {

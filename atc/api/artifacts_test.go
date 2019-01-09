@@ -120,7 +120,7 @@ var _ = Describe("Artifacts API", func() {
 					BeforeEach(func() {
 						fakeWorkerArtifact = new(dbfakes.FakeWorkerArtifact)
 						fakeWorkerArtifact.IDReturns(0)
-						fakeWorkerArtifact.CreatedAtReturns(time.Now())
+						fakeWorkerArtifact.CreatedAtReturns(time.Unix(42, 0))
 
 						fakeVolume.InitializeArtifactReturns(fakeWorkerArtifact, nil)
 					})
@@ -180,8 +180,8 @@ var _ = Describe("Artifacts API", func() {
 								Expect(body).To(MatchJSON(`{
 									"id": 0,
 									"name": "",
-									"created_at": 42,
-									"build_id": 0
+									"build_id": 0,
+									"created_at": 42
 								}`))
 							})
 						})

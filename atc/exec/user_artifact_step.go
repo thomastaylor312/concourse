@@ -67,9 +67,8 @@ func (step *ArtifactStep) Run(ctx context.Context, state RunState) error {
 		"handle": workerVolume.Handle(),
 	})
 
-	state.Artifacts().RegisterSource(artifact.Name(step.plan.UserArtifact.Name), newTaskArtifactSource(
-		workerVolume,
-	))
+	source := newTaskArtifactSource(workerVolume)
+	state.Artifacts().RegisterSource(artifact.Name(step.plan.UserArtifact.Name), source)
 
 	step.succeeded = true
 

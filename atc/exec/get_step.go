@@ -243,19 +243,41 @@ func (s *getArtifactSource) VolumeOn(logger lager.Logger, worker worker.Worker) 
 
 // StreamTo streams the resource's data to the destination.
 func (s *getArtifactSource) StreamTo(logger lager.Logger, destination worker.ArtifactDestination) error {
-	out, err := s.versionedSource.StreamOut(".")
+	return streamToHelper(s.versionedSource, logger, destination)
+}
+
+// StreamFile streams a single file out of the resource.
+func (s *getArtifactSource) StreamFile(logger lager.Logger, path string) (io.ReadCloser, error) {
+	return streamFileHelper(s.versionedSource, logger, path)
+}
+
+func streamToHelper(s interface {
+	StreamOut(string) (io.ReadCloser, error)
+}, logger lager.Logger, destination worker.ArtifactDestination) error {
+	logger.Debug("start")
+
+	defer logger.Debug("end")
+
+	out, err := s.StreamOut(".")
 	if err != nil {
+		logger.Error("failed", err)
 		return err
 	}
 
 	defer out.Close()
 
-	return destination.StreamIn(".", out)
+	err = destination.StreamIn(".", out)
+	if err != nil {
+		logger.Error("failed", err)
+		return err
+	}
+	return nil
 }
 
-// StreamFile streams a single file out of the resource.
-func (s *getArtifactSource) StreamFile(logger lager.Logger, path string) (io.ReadCloser, error) {
-	out, err := s.versionedSource.StreamOut(path)
+func streamFileHelper(s interface {
+	StreamOut(string) (io.ReadCloser, error)
+}, logger lager.Logger, path string) (io.ReadCloser, error) {
+	out, err := s.StreamOut(path)
 	if err != nil {
 		return nil, err
 	}

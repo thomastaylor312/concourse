@@ -1,8 +1,6 @@
 package exec
 
 import (
-	"archive/tar"
-	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
@@ -497,49 +495,12 @@ func (src *taskArtifactSource) StreamTo(logger lager.Logger, destination worker.
 		"src-worker": src.WorkerName(),
 	})
 
-	logger.Debug("start")
-
-	defer logger.Debug("end")
-
-	out, err := src.StreamOut(".")
-	if err != nil {
-		logger.Error("failed", err)
-		return err
-	}
-
-	defer out.Close()
-
-	err = destination.StreamIn(".", out)
-	if err != nil {
-		logger.Error("failed", err)
-		return err
-	}
-	return nil
+	return streamToHelper(src, logger, destination)
 }
 
 func (src *taskArtifactSource) StreamFile(logger lager.Logger, filename string) (io.ReadCloser, error) {
 	logger.Debug("streaming-file-from-volume")
-	out, err := src.StreamOut(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	gzReader, err := gzip.NewReader(out)
-	if err != nil {
-		return nil, FileNotFoundError{Path: filename}
-	}
-
-	tarReader := tar.NewReader(gzReader)
-
-	_, err = tarReader.Next()
-	if err != nil {
-		return nil, FileNotFoundError{Path: filename}
-	}
-
-	return fileReadCloser{
-		Reader: tarReader,
-		Closer: out,
-	}, nil
+	return streamFileHelper(src, logger, filename)
 }
 
 func (src *taskArtifactSource) VolumeOn(logger lager.Logger, w worker.Worker) (worker.Volume, bool, error) {
