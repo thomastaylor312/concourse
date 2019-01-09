@@ -134,8 +134,8 @@ func NewTaskStep(
 	}
 }
 
-// Run will first selects the worker based on the TaskConfig's platform, the
-// TaskStep's tags, and prioritized by availability of volumes for the TaskConfig's
+// Run will first select the worker based on the TaskConfig's platform and the
+// TaskStep's tags, and prioritize it by availability of volumes for the TaskConfig's
 // inputs. Inputs that did not have volumes available on the worker will be streamed
 // in to the container.
 //
@@ -205,7 +205,7 @@ func (action *TaskStep) Run(ctx context.Context, state RunState) error {
 			return err
 		}
 
-		action.succeeded = status == 0
+		action.succeeded = (status == 0)
 
 		err = action.registerOutputs(logger, repository, config, container)
 		if err != nil {

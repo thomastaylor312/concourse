@@ -153,7 +153,7 @@ func (command *ExecuteCommand) Execute(args []string) error {
 	artifacts := map[string]atc.WorkerArtifact{}
 
 	for _, artifact := range artifactList {
-		artifacts[artifact.Path] = artifact
+		artifacts[artifact.Name] = artifact
 	}
 
 	for _, output := range outputs {
