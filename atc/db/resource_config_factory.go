@@ -79,7 +79,8 @@ func (f *resourceConfigFactory) FindOrCreateResourceConfig(
 	source atc.Source,
 	resourceTypes creds.VersionedResourceTypes,
 ) (ResourceConfig, error) {
-	resourceConfigDescriptor, err := constructResourceConfigDescriptor(resourceType, source, resourceTypes, nil)
+
+	resourceConfigDescriptor, err := constructResourceConfigDescriptor(resourceType, source, resourceTypes)
 	if err != nil {
 		return nil, err
 	}
@@ -110,11 +111,9 @@ func constructResourceConfigDescriptor(
 	resourceTypeName string,
 	source atc.Source,
 	resourceTypes creds.VersionedResourceTypes,
-	resource Resource,
 ) (ResourceConfigDescriptor, error) {
 	resourceConfigDescriptor := ResourceConfigDescriptor{
-		Source:   source,
-		Resource: resource,
+		Source: source,
 	}
 
 	customType, found := resourceTypes.Lookup(resourceTypeName)
@@ -128,12 +127,12 @@ func constructResourceConfigDescriptor(
 			customType.Type,
 			source,
 			resourceTypes.Without(customType.Name),
-			nil,
 		)
 		if err != nil {
 			return ResourceConfigDescriptor{}, err
 		}
 
+		resourceConfigDescriptor.customTypeUniqueVersionHistory = customType.UniqueVersionHistory
 		resourceConfigDescriptor.CreatedByResourceCache = &ResourceCacheDescriptor{
 			ResourceConfigDescriptor: customTypeResourceConfig,
 			Version:                  customType.Version,

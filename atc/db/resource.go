@@ -36,7 +36,6 @@ type Resource interface {
 	APIPinnedVersion() atc.Version
 	ResourceConfigCheckError() error
 	ResourceConfigID() int
-	UniqueVersionHistory() bool
 
 	CurrentPinnedVersion() atc.Version
 
@@ -49,7 +48,7 @@ type Resource interface {
 	PinVersion(rcvID int) error
 	UnpinVersion() error
 
-	SetResourceConfig(lager.Logger, atc.Source, creds.VersionedResourceTypes) (ResourceConfig, error)
+	SetResourceConfig(lager.Logger, atc.Source, creds.VersionedResourceTypes) (ResourceVersionOwnership, error)
 	SetCheckError(error) error
 
 	Reload() (bool, error)
@@ -80,7 +79,6 @@ type resource struct {
 	apiPinnedVersion         atc.Version
 	resourceConfigCheckError error
 	resourceConfigID         int
-	uniqueVersionHistory     bool
 
 	conn        Conn
 	lockFactory lock.LockFactory
@@ -141,7 +139,6 @@ func (r *resource) ConfigPinnedVersion() atc.Version { return r.configPinnedVers
 func (r *resource) APIPinnedVersion() atc.Version    { return r.apiPinnedVersion }
 func (r *resource) ResourceConfigCheckError() error  { return r.resourceConfigCheckError }
 func (r *resource) ResourceConfigID() int            { return r.resourceConfigID }
-func (r *resource) UniqueVersionHistory() bool       { return r.uniqueVersionHistory }
 
 func (r *resource) Reload() (bool, error) {
 	row := resourcesQuery.Where(sq.Eq{"r.id": r.id}).
@@ -159,8 +156,8 @@ func (r *resource) Reload() (bool, error) {
 	return true, nil
 }
 
-func (r *resource) SetResourceConfig(logger lager.Logger, source atc.Source, resourceTypes creds.VersionedResourceTypes) (ResourceConfig, error) {
-	resourceConfigDescriptor, err := constructResourceConfigDescriptor(r.type_, source, resourceTypes, r)
+func (r *resource) SetResourceConfig(logger lager.Logger, source atc.Source, resourceTypes creds.VersionedResourceTypes) (ResourceVersionOwnership, error) {
+	resourceConfigDescriptor, err := constructResourceConfigDescriptor(r.type_, source, resourceTypes)
 	if err != nil {
 		return nil, err
 	}
@@ -202,12 +199,73 @@ func (r *resource) SetResourceConfig(logger lager.Logger, source atc.Source, res
 		}
 	}
 
+	//Select and Delete
+	var resourceID *int
+	// if unique
+	if resourceConfig.UniqueVersionHistory() {
+		resourceID = &r.id
+		// check for existing RVO entry
+		var rcID int
+		rows, err := psql.Select("id, resource_config_id").
+			From("resource_version_ownership").
+			Where(sq.Eq{
+				"resource_id": resourceID,
+			}).
+			RunWith(tx).
+			Query()
+		if err != nil {
+			return nil, err
+		}
+
+		if rows.Next() {
+			var ownerID int
+			rows.Scan(&ownerID, &rcID)
+			// ensure that there is an entry for the matching resource_config_id
+			if rcID != resourceConfig.ID() {
+				_, err := psql.Delete("resource_version_ownership").
+					Where(sq.And{
+						sq.Eq{
+							"resource_id": resourceID,
+						},
+						sq.NotEq{
+							"resource_config_id": resourceConfig.ID(),
+						},
+					}).
+					RunWith(tx).
+					Exec()
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				return &resourceVersionOwnership{ownerID, resourceConfig, r.conn}, nil
+			}
+		}
+	}
+
+	var ownerID int
+	// -> create a new entry for the resource_id, resource_config_id
+	err = psql.Insert("resource_version_ownership").
+		Columns("resource_id", "resource_config_id").
+		Values(resourceID, resourceConfig.ID()).
+		Suffix(`
+			ON CONFLICT (resource_id, resource_config_id) DO UPDATE SET
+				resource_id = ?,
+				resource_config_id = ?,
+			RETURNING id
+		`, resourceID, resourceConfig.ID()).
+		RunWith(tx).
+		QueryRow().
+		Scan(&ownerID)
+	if err != nil {
+		return nil, err
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
 
-	return resourceConfig, nil
+	return &resourceVersionOwnership{ownerID, resourceConfig, r.conn}, nil
 }
 
 func (r *resource) SetCheckError(cause error) error {
@@ -559,7 +617,6 @@ func scanResource(r *resource, row scannable) error {
 	r.tags = config.Tags
 	r.webhookToken = config.WebhookToken
 	r.configPinnedVersion = config.Version
-	r.uniqueVersionHistory = config.UniqueVersionHistory
 
 	if apiPinnedVersion.Valid {
 		err = json.Unmarshal([]byte(apiPinnedVersion.String), &r.apiPinnedVersion)

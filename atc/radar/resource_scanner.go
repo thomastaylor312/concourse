@@ -237,7 +237,7 @@ func (scanner *resourceScanner) scan(logger lager.Logger, resourceName string, f
 func (scanner *resourceScanner) check(
 	logger lager.Logger,
 	savedResource db.Resource,
-	resourceConfig db.ResourceConfig,
+	resourceConfig db.ResourceVersioner,
 	fromVersion atc.Version,
 	resourceTypes creds.VersionedResourceTypes,
 	source atc.Source,

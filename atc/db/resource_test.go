@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/cloudfoundry/bosh-cli/director/template"
 	"github.com/concourse/concourse/atc"
 	"github.com/concourse/concourse/atc/creds"
 	"github.com/concourse/concourse/atc/db"
@@ -202,6 +203,14 @@ var _ = Describe("Resource", func() {
 			pipeline, created, err = defaultTeam.SavePipeline(
 				"pipeline-with-same-resources",
 				atc.Config{
+					ResourceTypes: atc.ResourceTypes{
+						{
+							Name:                 "some-resourceType",
+							Type:                 "base",
+							Source:               atc.Source{"some": "repository"},
+							UniqueVersionHistory: true,
+						},
+					},
 					Resources: atc.ResourceConfigs{
 						{
 							Name:   "some-resource",
@@ -214,16 +223,14 @@ var _ = Describe("Resource", func() {
 							Source: atc.Source{"some": "repository"},
 						},
 						{
-							Name:                 "pipeline-resource",
-							Type:                 "time",
-							Source:               atc.Source{"some": "repository"},
-							UniqueVersionHistory: true,
+							Name:   "pipeline-resource",
+							Type:   "some-resourceType",
+							Source: atc.Source{"some": "repository"},
 						},
 						{
-							Name:                 "other-pipeline-resource",
-							Type:                 "time",
-							Source:               atc.Source{"some": "repository"},
-							UniqueVersionHistory: true,
+							Name:   "other-pipeline-resource",
+							Type:   "some-resourceType",
+							Source: atc.Source{"some": "repository"},
 						},
 					},
 				},
@@ -269,7 +276,6 @@ var _ = Describe("Resource", func() {
 
 			It("has the resource config id set on the resource", func() {
 				Expect(resource1.ResourceConfigID()).To(Equal(resourceConfig1.ID()))
-				Expect(resource1.UniqueVersionHistory()).To(BeFalse())
 			})
 
 			Context("when another resource uses the same resource config", func() {
@@ -290,7 +296,6 @@ var _ = Describe("Resource", func() {
 
 				It("has the same resource config id as the first resource", func() {
 					Expect(resource2.ResourceConfigID()).To(Equal(resourceConfig2.ID()))
-					Expect(resource2.UniqueVersionHistory()).To(BeFalse())
 					Expect(resource1.ResourceConfigID()).To(Equal(resource2.ResourceConfigID()))
 				})
 			})
@@ -332,7 +337,6 @@ var _ = Describe("Resource", func() {
 
 			It("has the resource config id set on the resource", func() {
 				Expect(resource1.ResourceConfigID()).To(Equal(resourceConfig1.ID()))
-				Expect(resource1.UniqueVersionHistory()).To(BeFalse())
 			})
 
 			Context("when another resource uses the same resource config", func() {
@@ -353,18 +357,18 @@ var _ = Describe("Resource", func() {
 
 				It("has a different resource config id than the first resource", func() {
 					Expect(resource2.ResourceConfigID()).To(Equal(resourceConfig2.ID()))
-					Expect(resource2.UniqueVersionHistory()).To(BeFalse())
 					Expect(resource1.ResourceConfigID()).ToNot(Equal(resource2.ResourceConfigID()))
 				})
 			})
 		})
 
-		Context("when the resource specified a unique version history in the pipeline config", func() {
+		Context("when the resource uses a resource type that is specified in the piplein config to have a unique version history", func() {
 			var (
 				resourceConfig1 db.ResourceConfig
 				resourceConfig2 db.ResourceConfig
 				resource1       db.Resource
 				resource2       db.Resource
+				resourceTypes   db.ResourceTypes
 			)
 
 			BeforeEach(func() {
@@ -378,13 +382,16 @@ var _ = Describe("Resource", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				brt := db.BaseResourceType{
-					Name: "time",
+					Name: "base",
 				}
 				_, err = brt.FindOrCreate(setupTx)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(setupTx.Commit()).To(Succeed())
 
-				resourceConfig1, err = resource1.SetResourceConfig(logger, atc.Source{"some": "repository"}, creds.VersionedResourceTypes{})
+				resourceTypes, err = pipeline.ResourceTypes()
+				Expect(err).ToNot(HaveOccurred())
+
+				resourceConfig1, err = resource1.SetResourceConfig(logger, atc.Source{"some": "repository"}, creds.NewVersionedResourceTypes(template.StaticVariables{}, resourceTypes.Deserialize()))
 				Expect(err).NotTo(HaveOccurred())
 
 				found, err = resource1.Reload()
@@ -394,7 +401,6 @@ var _ = Describe("Resource", func() {
 
 			It("has the resource config id set on the resource", func() {
 				Expect(resource1.ResourceConfigID()).To(Equal(resourceConfig1.ID()))
-				Expect(resource1.UniqueVersionHistory()).To(BeTrue())
 			})
 
 			Context("when another resource uses the same resource config", func() {
@@ -405,7 +411,7 @@ var _ = Describe("Resource", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(found).To(BeTrue())
 
-					resourceConfig2, err = resource2.SetResourceConfig(logger, atc.Source{"some": "repository"}, creds.VersionedResourceTypes{})
+					resourceConfig2, err = resource2.SetResourceConfig(logger, atc.Source{"some": "repository"}, creds.NewVersionedResourceTypes(template.StaticVariables{}, resourceTypes.Deserialize()))
 					Expect(err).NotTo(HaveOccurred())
 
 					found, err = resource2.Reload()
@@ -415,30 +421,6 @@ var _ = Describe("Resource", func() {
 
 				It("has a different resource config id than the first resource", func() {
 					Expect(resource2.ResourceConfigID()).To(Equal(resourceConfig2.ID()))
-					Expect(resource2.UniqueVersionHistory()).To(BeTrue())
-					Expect(resource1.ResourceConfigID()).ToNot(Equal(resource2.ResourceConfigID()))
-				})
-			})
-
-			Context("when another resource uses the same resource config but is not unique", func() {
-				BeforeEach(func() {
-					var found bool
-					var err error
-					resource2, found, err = pipeline.Resource("some-resource")
-					Expect(err).ToNot(HaveOccurred())
-					Expect(found).To(BeTrue())
-
-					resourceConfig2, err = resource2.SetResourceConfig(logger, atc.Source{"some": "repository"}, creds.VersionedResourceTypes{})
-					Expect(err).NotTo(HaveOccurred())
-
-					found, err = resource2.Reload()
-					Expect(err).NotTo(HaveOccurred())
-					Expect(found).To(BeTrue())
-				})
-
-				It("has a different resource config id than the first resource", func() {
-					Expect(resource2.ResourceConfigID()).To(Equal(resourceConfig2.ID()))
-					Expect(resource2.UniqueVersionHistory()).To(BeFalse())
 					Expect(resource1.ResourceConfigID()).ToNot(Equal(resource2.ResourceConfigID()))
 				})
 			})
