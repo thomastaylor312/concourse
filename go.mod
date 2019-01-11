@@ -77,7 +77,7 @@ require (
 	github.com/google/jsonapi v0.0.0-20180618021926-5d047c6bc66b
 	github.com/googleapis/gnostic v0.2.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20180825215210-0210a2f0f73c // indirect
-	github.com/gorilla/websocket v1.2.0
+	github.com/gorilla/websocket v1.4.0
 	github.com/gotestyourself/gotestyourself v2.1.0+incompatible // indirect
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/hashicorp/consul v1.2.3 // indirect
@@ -109,7 +109,7 @@ require (
 	github.com/juju/ratelimit v1.0.1 // indirect
 	github.com/keybase/go-crypto v0.0.0-20180920171116-0b2a91ace448 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
-	github.com/kr/pty v1.1.2
+	github.com/kr/pty v1.1.3
 	github.com/krishicks/yaml-patch v0.0.10
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
